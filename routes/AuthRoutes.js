@@ -1,7 +1,9 @@
 import express from "express";
-import { checkUser } from "../controllers/AuthController.js";
+import { checkUser, onboardUser } from "../controllers/AuthController.js";
 const router = express.Router();
 
 router.post("/check-user", checkUser);
+
+router.post("/onboard-user", onboardUser);
 
 export default router;
