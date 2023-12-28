@@ -34,10 +34,37 @@ export const onboardUser = async (req, res, next) => {
       return res.send("Name,Email,About and Profile Photo must be provided");
     }
     const prisma = getPrismaInstance();
-    await prisma.user.create({
+    const result = await prisma.user.create({
       data: { name, email, about, profilePhoto },
     });
-    return res.json({ message: "User created successfully", status: true });
+    return res.json({
+      message: "User created successfully",
+      status: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const prisma = getPrismaInstance();
+    const users = await prisma.user.findMany({
+      orderBy: {
+        name: "asc",
+      },
+    });
+    const usersGroupByInitialLetter = {};
+
+    users?.forEach((user) => {
+      const initialLetter = user?.name?.charAt(0).toUpperCase();
+      if (!usersGroupByInitialLetter[initialLetter]) {
+        usersGroupByInitialLetter[initialLetter] = [];
+      }
+      usersGroupByInitialLetter[initialLetter].push(user);
+    });
+    return res.status(200).json({ users: usersGroupByInitialLetter });
   } catch (error) {
     next(error);
   }
