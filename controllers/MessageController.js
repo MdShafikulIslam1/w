@@ -1,7 +1,6 @@
 import getPrismaInstance from "../utils/PrismaClient.js";
 
 export const addMessage = async (req, res, next) => {
-  console.log(req.body);
   try {
     const prisma = getPrismaInstance();
     const { message, from, to } = req.body;
@@ -57,7 +56,7 @@ export const getMessages = async (req, res, next) => {
         message?.messageStatus !== "read" &&
         message?.senderId === parseInt(to)
       ) {
-        messages[index] = "read";
+        messages[index].messageStatus = "read";
         unreadMessages.push(message?.id);
       }
     });
