@@ -3,6 +3,7 @@ import {
   addAudioMessage,
   addImageMessage,
   addMessage,
+  getInitialContactsWithMessages,
   getMessages,
 } from "../controllers/MessageController.js";
 import multer from "multer";
@@ -14,6 +15,8 @@ const uploadAudio = multer({ dest: "uploads/recordings" });
 const uploadImage = multer({ dest: "uploads/images" });
 
 router.post("/add-message", addMessage);
+
+router.get("/get-initial-contacts/:from", getInitialContactsWithMessages);
 
 router.get("/get-messages/:from/:to", getMessages);
 
