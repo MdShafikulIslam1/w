@@ -1,5 +1,5 @@
+import { FileUploadHelper } from "../utils/FileUploaderHelper.js";
 import getPrismaInstance from "../utils/PrismaClient.js";
-import { renameSync } from "fs";
 
 export const addMessage = async (req, res, next) => {
   try {
@@ -33,17 +33,29 @@ export const addMessage = async (req, res, next) => {
 export const getMessages = async (req, res, next) => {
   try {
     const { from, to } = req.params;
+
+    if (!from || !to) {
+      return res.status(400).json({ error: "Missing required parameters" });
+    }
+
+    const senderId = parseInt(from);
+    const receiverId = parseInt(to);
+
+    if (isNaN(senderId) || isNaN(receiverId)) {
+      // Handle the case where the values are not valid integers
+      return res.status(400).json({ error: "Invalid senderId or receiverId" });
+    }
     const prisma = getPrismaInstance();
     const messages = await prisma.message.findMany({
       where: {
         OR: [
           {
-            senderId: parseInt(from),
-            receiverId: parseInt(to),
+            senderId,
+            receiverId,
           },
           {
-            senderId: parseInt(to),
-            receiverId: parseInt(from),
+            senderId: receiverId,
+            receiverId: senderId,
           },
         ],
       },
@@ -78,23 +90,21 @@ export const getMessages = async (req, res, next) => {
 };
 
 export const addImageMessage = async (req, res, next) => {
-  console.log("hit the add image message");
   try {
-    if (req.file) {
-      const date = Date.now();
-      let fileName = "uploads/images/" + date + req.file.originalname;
-      renameSync(req.file.path, fileName);
+    const { secure_url } = await FileUploadHelper.uploadToCloudinary(req?.file);
+    if (secure_url) {
       const prisma = getPrismaInstance();
       const { from, to } = req.query;
       if (from && to) {
         const message = await prisma.message.create({
           data: {
-            message: fileName,
+            message: secure_url,
             sender: { connect: { id: parseInt(from) } },
             receiver: { connect: { id: parseInt(to) } },
             type: "image",
           },
         });
+        console.log("created image  message", message);
         return res.status(200).json({ message });
       }
       return res.status(400).send("from and to must be provided");
@@ -105,32 +115,6 @@ export const addImageMessage = async (req, res, next) => {
   }
 };
 
-export const addAudioMessage = async (req, res, next) => {
-  try {
-    if (req.file) {
-      const date = Date.now();
-      const fileName = `uploads/recordings/${date}${req.file.originalname}`;
-      renameSync(req.file.path, fileName);
-      const prisma = getPrismaInstance();
-      const { from, to } = req.query;
-      if (from && to) {
-        const message = await prisma.message.create({
-          data: {
-            message: fileName,
-            sender: { connect: { id: parseInt(from) } },
-            receiver: { connect: { id: parseInt(to) } },
-            type: "audio",
-          },
-        });
-        return res.status(200).json({ message });
-      }
-      return res.status(400).send("from and to must be provided");
-    }
-    return res.status(400).send("Audio must be provided");
-  } catch (error) {
-    next(error);
-  }
-};
 
 export const getInitialContactsWithMessages = async (req, res, next) => {
   try {
@@ -244,3 +228,65 @@ export const getInitialContactsWithMessages = async (req, res, next) => {
     next(error);
   }
 };
+
+//TODO:implement audio or voice message(try to with cloudinary)
+
+
+// export const addAudioMessage = async (req, res, next) => {
+//   console.log("hit the audio message request");
+//   try {
+//     const file = await FileUploadHelper.uploadToCloudinary(req.file);
+
+//     console.log("audio file from request", req.file);
+//     console.log("audio secure url from cloudinary", file);
+//     if (secure_url) {
+//       const prisma = getPrismaInstance();
+//       const { from, to } = req.query;
+//       if (from && to) {
+//         const message = await prisma.message.create({
+//           data: {
+//             message: secure_url,
+//             sender: { connect: { id: parseInt(from) } },
+//             receiver: { connect: { id: parseInt(to) } },
+//             type: "audio",
+//           },
+//         });
+//         console.log("created Audio  message", message);
+//         return res.status(200).json({ message });
+//       }
+//       return res.status(400).send("from and to must be provided");
+//     }
+//     return res.status(400).send("Audio must be provided");
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+// export const addAudioMessage = async (req, res, next) => {
+//   try {
+//     if (req.file) {
+//       const date = Date.now();
+//       const fileName = `uploads/recordings/${date}${req.file.originalname}`;
+//       renameSync(req.file.path, fileName);
+//       const prisma = getPrismaInstance();
+//       const { from, to } = req.query;
+//       if (from && to) {
+//         const message = await prisma.message.create({
+//           data: {
+//             message: fileName,
+//             sender: { connect: { id: parseInt(from) } },
+//             receiver: { connect: { id: parseInt(to) } },
+//             type: "audio",
+//           },
+//         });
+//         return res.status(200).json({ message });
+//       }
+//       return res.status(400).send("from and to must be provided");
+//     }
+//     return res.status(400).send("Audio must be provided");
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+
