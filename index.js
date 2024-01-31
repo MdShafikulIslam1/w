@@ -17,8 +17,6 @@ app.use(
 );
 app.use(express.json());
 
-//TODO:implement audio or voice message(try to with cloudinary)
-// app.use("/uploads/recordings", express.static("uploads/recordings"));
 
 app.use("/api/auth/", AuthRoutes);
 app.use("/api/messages", MessageRoutes);
