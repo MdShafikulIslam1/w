@@ -11,8 +11,8 @@ export const addMessage = async (req, res, next) => {
       const newMessage = await prisma.message.create({
         data: {
           message,
-          sender: { connect: { id: parseInt(from) } },
-          receiver: { connect: { id: parseInt(to) } },
+          sender: { connect: { id: from } },
+          receiver: { connect: { id: to } },
           messageStatus: getUser ? "delivered" : "sent",
         },
         include: {
@@ -38,24 +38,17 @@ export const getMessages = async (req, res, next) => {
       return res.status(400).json({ error: "Missing required parameters" });
     }
 
-    const senderId = parseInt(from);
-    const receiverId = parseInt(to);
-
-    if (isNaN(senderId) || isNaN(receiverId)) {
-      // Handle the case where the values are not valid integers
-      return res.status(400).json({ error: "Invalid senderId or receiverId" });
-    }
     const prisma = getPrismaInstance();
     const messages = await prisma.message.findMany({
       where: {
         OR: [
           {
-            senderId,
-            receiverId,
+            senderId: from,
+            receiverId: to,
           },
           {
-            senderId: receiverId,
-            receiverId: senderId,
+            senderId: to,
+            receiverId: from,
           },
         ],
       },
@@ -65,10 +58,7 @@ export const getMessages = async (req, res, next) => {
     });
     const unreadMessages = [];
     messages.forEach((message, index) => {
-      if (
-        message?.messageStatus !== "read" &&
-        message?.senderId === parseInt(to)
-      ) {
+      if (message?.messageStatus !== "read" && message?.senderId === to) {
         messages[index].messageStatus = "read";
         unreadMessages.push(message?.id);
       }
@@ -99,12 +89,11 @@ export const addImageMessage = async (req, res, next) => {
         const message = await prisma.message.create({
           data: {
             message: secure_url,
-            sender: { connect: { id: parseInt(from) } },
-            receiver: { connect: { id: parseInt(to) } },
+            sender: { connect: { id: from } },
+            receiver: { connect: { id: to } },
             type: "image",
           },
         });
-        console.log("created image  message", message);
         return res.status(200).json({ message });
       }
       return res.status(400).send("from and to must be provided");
@@ -115,10 +104,9 @@ export const addImageMessage = async (req, res, next) => {
   }
 };
 
-
 export const getInitialContactsWithMessages = async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.from);
+    const userId = req.params.from;
 
     const prisma = getPrismaInstance();
     const isExistUser = await prisma.user.findUnique({
@@ -228,65 +216,3 @@ export const getInitialContactsWithMessages = async (req, res, next) => {
     next(error);
   }
 };
-
-//TODO:implement audio or voice message(try to with cloudinary)
-
-
-// export const addAudioMessage = async (req, res, next) => {
-//   console.log("hit the audio message request");
-//   try {
-//     const file = await FileUploadHelper.uploadToCloudinary(req.file);
-
-//     console.log("audio file from request", req.file);
-//     console.log("audio secure url from cloudinary", file);
-//     if (secure_url) {
-//       const prisma = getPrismaInstance();
-//       const { from, to } = req.query;
-//       if (from && to) {
-//         const message = await prisma.message.create({
-//           data: {
-//             message: secure_url,
-//             sender: { connect: { id: parseInt(from) } },
-//             receiver: { connect: { id: parseInt(to) } },
-//             type: "audio",
-//           },
-//         });
-//         console.log("created Audio  message", message);
-//         return res.status(200).json({ message });
-//       }
-//       return res.status(400).send("from and to must be provided");
-//     }
-//     return res.status(400).send("Audio must be provided");
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-// export const addAudioMessage = async (req, res, next) => {
-//   try {
-//     if (req.file) {
-//       const date = Date.now();
-//       const fileName = `uploads/recordings/${date}${req.file.originalname}`;
-//       renameSync(req.file.path, fileName);
-//       const prisma = getPrismaInstance();
-//       const { from, to } = req.query;
-//       if (from && to) {
-//         const message = await prisma.message.create({
-//           data: {
-//             message: fileName,
-//             sender: { connect: { id: parseInt(from) } },
-//             receiver: { connect: { id: parseInt(to) } },
-//             type: "audio",
-//           },
-//         });
-//         return res.status(200).json({ message });
-//       }
-//       return res.status(400).send("from and to must be provided");
-//     }
-//     return res.status(400).send("Audio must be provided");
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-

@@ -73,8 +73,6 @@ export const getAllUsers = async (req, res, next) => {
 
 export const generateGegoCloudToken = (req, res, next) => {
   try {
-    const appId = parseInt(process.env.ZEGO_APP_ID);
-    const serverSecret = process.env.ZEGO_SERVER_SECRET;
     const userId = req.params.userId;
     const effectiveTime = 3600;
     const payload = "";

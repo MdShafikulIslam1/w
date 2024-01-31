@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id               Int       @id @default(autoincrement())
+  id               String    @id @default(uuid())
   email            String    @unique
   name             String
   profilePhoto     String    @default("")
@@ -25,14 +25,14 @@ model User {
 }
 
 model Message {
-  id       Int  @id @default(autoincrement())
-  senderId Int
-  sender   User @relation("sentMessage", fields: [senderId], references: [id])
+  id       String @id @default(uuid())
+  senderId String
+  sender   User   @relation("sentMessage", fields: [senderId], references: [id])
 
-  receiverId Int
-  receiver   User @relation("receivedMessage", fields: [receiverId], references: [id])
-  type String @default("text")
-  message String
+  receiverId    String
+  receiver      User   @relation("receivedMessage", fields: [receiverId], references: [id])
+  type          String @default("text")
+  message       String
   messageStatus String @default("sent")
 
   createdAt DateTime @default(now())
