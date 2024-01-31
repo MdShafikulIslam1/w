@@ -7,7 +7,7 @@ import { Server } from "socket.io";
 
 dotenv.config();
 const app = express();
-
+const corsOptions = { origin: "*" };
 app.use(
   cors({
     origin: "https://whatsapp-clone-app-client.vercel.app",
@@ -16,10 +16,16 @@ app.use(
   })
 );
 app.use(express.json());
-
+app.use(cors(corsOptions));
 
 app.use("/api/auth/", AuthRoutes);
 app.use("/api/messages", MessageRoutes);
+
+app.get("/", (req, res) => {
+  return res.status(200).json({
+    message: "Hello World",
+  });
+});
 
 const server = app.listen(process.env.PORT, () => {
   console.log(`server listening on port ${process.env.PORT}`);
