@@ -24,16 +24,3 @@ router.post(
   }
 );
 export default router;
-
-// TODO:implement audio or voice message (try to with cloudinary)
-
-//const const uploadAudio = multer({dest:"uploads/recordings"})
-// router.post(
-//   "/add-audio-message",
-//   FileUploadHelper.uploadToDirectory.single("file"),
-//   (req, res, next) => {
-//     return addAudioMessage(req, res, next);
-//   }
-// );
-
-// router.post("/add-audio-message", uploadAudio.single("audio"), addAudioMessage);

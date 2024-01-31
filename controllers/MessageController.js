@@ -7,7 +7,6 @@ export const addMessage = async (req, res, next) => {
     const { message, from, to } = req.body;
     const getUser = onlineUsers.get(to);
     if (message && from && to) {
-      console.log(req.body, "valid");
       const newMessage = await prisma.message.create({
         data: {
           message,
